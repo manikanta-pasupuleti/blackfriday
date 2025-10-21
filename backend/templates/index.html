@@ -1,0 +1,19 @@
+<!-- backend/templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Black Friday Purchase Prediction</title>
+</head>
+<body>
+<h1>Black Friday Purchase Prediction</h1>
+<form action="/predict" method="POST">
+<label for="model_choice">Choose model:</label>
+<select name="model_choice">
+<option value="rf">Random Forest (ensemble)</option>
+<option value="ab">AdaBoost (ensemble)</option>
+<option value="gb">GradientBoosting (ensemble)</option>
+<option value="lr">Linear Regression (basic)</option>
+<option value="dt">Decision Tree (basic)</option>
+<option value="knn">K-Nearest Neighbors (basic)</option>
+</select>       
