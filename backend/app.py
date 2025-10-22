@@ -125,8 +125,20 @@ def api_predict():
 # ------------------- Main ------------------- #
 
 if __name__ == '__main__':
-    debug_mode = os.environ.get('FLASK_DEBUG', '1') in ('1', 'true', 'True')
-    host = os.environ.get('FLASK_HOST', '127.0.0.1')
-    port = int(os.environ.get('FLASK_PORT', '5000'))
+    # In deployment environments (Render, Heroku, etc.) a PORT env var
+    # is typically provided and services must bind to 0.0.0.0. Prefer
+    # that value when present. Default to non-debug (production) mode.
+    port = int(os.environ.get('PORT', os.environ.get('FLASK_PORT', '5000')))
+    # If running on a platform that provides PORT, bind to 0.0.0.0 so the
+    # platform's router can reach the process. Otherwise bind to localhost
+    # for local development.
+    if 'PORT' in os.environ:
+        host = os.environ.get('FLASK_HOST', '0.0.0.0')
+    else:
+        host = os.environ.get('FLASK_HOST', '127.0.0.1')
+
+    debug_mode = os.environ.get('FLASK_DEBUG', '0') in ('1', 'true', 'True')
+    use_reloader = debug_mode
+
     print(f"Starting Flask app on {host}:{port} (debug={debug_mode})")
-    app.run(host=host, port=port, debug=debug_mode, use_reloader=debug_mode)
+    app.run(host=host, port=port, debug=debug_mode, use_reloader=use_reloader)
