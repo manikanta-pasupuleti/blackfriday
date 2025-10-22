@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Black Friday Purchase Prediction (Frontend)</title>
+	<style>
+		body { font-family: Arial, sans-serif; max-width:900px; margin:2rem auto; padding:0 1rem; }
+		label { display:block; margin-top:0.6rem; }
+		input, select { padding:0.4rem; width:100%; max-width:420px; }
+		.row { display:flex; gap:1rem; align-items:center; }
+		.submit { margin-top:1rem; }
+		.result { margin-top:1rem; padding:0.8rem; background:#f2f2f2; border-radius:6px; }
+	</style>
+</head>
+<body>
+	<h1>Black Friday Purchase Prediction</h1>
+
+	<!-- If backend injects 'prediction_text', it will be displayed here -->
+	{% if prediction_text %}
+	<div class="result">{{ prediction_text }}</div>
+	{% endif %}
+
+	<form action="/predict" method="POST">
+		<label for="model_choice">Choose model:</label>
+		<select name="model_choice" id="model_choice">
+			<option value="rf">Random Forest (ensemble)</option>
+			<option value="ab">AdaBoost (ensemble)</option>
+			<option value="gb">GradientBoosting (ensemble)</option>
+			<option value="lr">Linear Regression (basic)</option>
+			<option value="dt">Decision Tree (basic)</option>
+			<option value="knn">K-Nearest Neighbors (basic)</option>
+		</select>
+
+		<label for="User_ID">User ID</label>
+		<input type="text" name="User_ID" id="User_ID" placeholder="e.g. 1000001" />
+
+		<label for="Product_ID">Product ID</label>
+		<input type="text" name="Product_ID" id="Product_ID" placeholder="e.g. P00069042" />
+
+		<div class="row">
+			<div>
+				<label for="Gender">Gender</label>
+				<select name="Gender" id="Gender">
+					<option value="M">M</option>
+					<option value="F">F</option>
+				</select>
+			</div>
+			<div>
+				<label for="Age">Age</label>
+				<select name="Age" id="Age">
+					<option>0-17</option>
+					<option>18-25</option>
+					<option selected>26-35</option>
+					<option>36-45</option>
+					<option>46-50</option>
+					<option>51-55</option>
+					<option>55+</option>
+				</select>
+			</div>
+		</div>
+
+		<label for="Occupation">Occupation (numeric code)</label>
+		<input type="number" name="Occupation" id="Occupation" min="0" />
+
+		<label for="City_Category">City Category</label>
+		<select name="City_Category" id="City_Category">
+			<option>A</option>
+			<option>B</option>
+			<option>C</option>
+		</select>
+
+		<label for="Stay_In_Current_City_Years">Stay In Current City Years</label>
+		<select name="Stay_In_Current_City_Years" id="Stay_In_Current_City_Years">
+			<option>0</option>
+			<option>1</option>
+			<option selected>2</option>
+			<option>3</option>
+			<option>4+</option>
+		</select>
+
+		<label for="Marital_Status">Marital Status</label>
+		<select name="Marital_Status" id="Marital_Status">
+			<option value="0">0</option>
+			<option value="1">1</option>
+		</select>
+
+		<label for="Product_Category_1">Product Category 1</label>
+		<input type="number" name="Product_Category_1" id="Product_Category_1" min="0" />
+
+		<label for="Product_Category_2">Product Category 2 (optional)</label>
+		<input type="number" name="Product_Category_2" id="Product_Category_2" min="0" />
+
+		<label for="Product_Category_3">Product Category 3 (optional)</label>
+		<input type="number" name="Product_Category_3" id="Product_Category_3" min="0" />
+
+		<div class="submit">
+			<button type="submit">Predict Purchase</button>
+		</div>
+	</form>
+
+</body>
+</html>
