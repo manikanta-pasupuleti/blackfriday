@@ -220,6 +220,12 @@ def clear():
     return redirect(url_for('home'))
 
 
+@app.route('/health')
+def health():
+    """Simple health check for load balancers and platform probes."""
+    return 'ok', 200
+
+
 
 # ------------------- Main ------------------- #
 
