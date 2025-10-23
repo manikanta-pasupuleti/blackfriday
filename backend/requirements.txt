@@ -9,3 +9,4 @@ catboost
 joblib
 flask
 streamlit
+gunicorn

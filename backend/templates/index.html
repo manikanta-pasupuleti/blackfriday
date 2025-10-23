@@ -16,79 +16,95 @@
 <body>
 	<h1>Black Friday Purchase Prediction</h1>
 
+	{% if prediction_text %}
+	<div id="prediction" style="background:#f0f8ff;border:1px solid #cce; padding:0.75rem;margin-bottom:1rem;">
+		<strong>Result:</strong> {{ prediction_text }}
+		<a href="/clear" style="margin-left:1rem; font-size:0.9rem;">Clear result</a>
+	</div>
+	<div id="prediction" style="background:#fff8f0;border:1px solid #fcf0e0; padding:0.75rem;margin-bottom:1rem;color:#666;">
+		<strong>Result:</strong> No prediction yet — submit the form to get a prediction.
+	</div>
+	{% endif %}
+
 	<form action="/predict" method="POST">
 		<label for="model_choice">Choose model:</label>
 		<select name="model_choice" id="model_choice">
-			<option value="rf">Random Forest (ensemble)</option>
-			<option value="ab">AdaBoost (ensemble)</option>
-			<option value="gb">GradientBoosting (ensemble)</option>
-			<option value="lr">Linear Regression (basic)</option>
-			<option value="dt">Decision Tree (basic)</option>
-			<option value="knn">K-Nearest Neighbors (basic)</option>
+			{% set fc = form_data.get('model_choice') if form_data else 'rf' %}
+			<option value="rf" {% if fc=='rf' %}selected{% endif %}>Random Forest (ensemble)</option>
+			<option value="ab" {% if fc=='ab' %}selected{% endif %}>AdaBoost (ensemble)</option>
+			<option value="gb" {% if fc=='gb' %}selected{% endif %}>GradientBoosting (ensemble)</option>
+			<option value="lr" {% if fc=='lr' %}selected{% endif %}>Linear Regression (basic)</option>
+			<option value="dt" {% if fc=='dt' %}selected{% endif %}>Decision Tree (basic)</option>
+			<option value="knn" {% if fc=='knn' %}selected{% endif %}>K-Nearest Neighbors (basic)</option>
 		</select>
 
 		<!-- Common dataset fields (match your backend expected names) -->
 		<label for="User_ID">User ID</label>
-		<input type="text" name="User_ID" id="User_ID" placeholder="e.g. 1000001" />
+		<input type="text" name="User_ID" id="User_ID" placeholder="e.g. 1000001" value="{{ form_data.User_ID if form_data else '' }}" />
 
 		<label for="Product_ID">Product ID</label>
-		<input type="text" name="Product_ID" id="Product_ID" placeholder="e.g. P00069042" />
+		<input type="text" name="Product_ID" id="Product_ID" placeholder="e.g. P00069042" value="{{ form_data.Product_ID if form_data else '' }}" />
 
 		<div class="row">
 			<div>
 				<label for="Gender">Gender</label>
 				<select name="Gender" id="Gender">
-					<option value="M">M</option>
-					<option value="F">F</option>
+					{% set g = form_data.get('Gender') if form_data else 'M' %}
+					<option value="M" {% if g=='M' %}selected{% endif %}>M</option>
+					<option value="F" {% if g=='F' %}selected{% endif %}>F</option>
 				</select>
 			</div>
 			<div>
 				<label for="Age">Age</label>
 				<select name="Age" id="Age">
-					<option>0-17</option>
-					<option>18-25</option>
-					<option>26-35</option>
-					<option>36-45</option>
-					<option>46-50</option>
-					<option>51-55</option>
-					<option>55+</option>
+					{% set a = form_data.get('Age') if form_data else '26-35' %}
+					<option {% if a=='0-17' %}selected{% endif %}>0-17</option>
+					<option {% if a=='18-25' %}selected{% endif %}>18-25</option>
+					<option {% if a=='26-35' %}selected{% endif %}>26-35</option>
+					<option {% if a=='36-45' %}selected{% endif %}>36-45</option>
+					<option {% if a=='46-50' %}selected{% endif %}>46-50</option>
+					<option {% if a=='51-55' %}selected{% endif %}>51-55</option>
+					<option {% if a=='55+' %}selected{% endif %}>55+</option>
 				</select>
 			</div>
 		</div>
 
 		<label for="Occupation">Occupation (numeric code)</label>
-		<input type="number" name="Occupation" id="Occupation" min="0" />
+		<input type="number" name="Occupation" id="Occupation" min="0" value="{{ form_data.Occupation if form_data else '' }}" />
 
 		<label for="City_Category">City Category</label>
 		<select name="City_Category" id="City_Category">
-			<option>A</option>
-			<option>B</option>
-			<option>C</option>
+			{% set cc = form_data.get('City_Category') if form_data else 'A' %}
+			<option {% if cc=='A' %}selected{% endif %}>A</option>
+			<option {% if cc=='B' %}selected{% endif %}>B</option>
+			<option {% if cc=='C' %}selected{% endif %}>C</option>
 		</select>
 
 		<label for="Stay_In_Current_City_Years">Stay In Current City Years</label>
 		<select name="Stay_In_Current_City_Years" id="Stay_In_Current_City_Years">
-			<option>0</option>
-			<option>1</option>
-			<option>2</option>
-			<option>3</option>
-			<option>4+</option>
+			{% set s = form_data.get('Stay_In_Current_City_Years') if form_data else '0' %}
+			<option {% if s=='0' %}selected{% endif %}>0</option>
+			<option {% if s=='1' %}selected{% endif %}>1</option>
+			<option {% if s=='2' %}selected{% endif %}>2</option>
+			<option {% if s=='3' %}selected{% endif %}>3</option>
+			<option {% if s=='4+' %}selected{% endif %}>4+</option>
 		</select>
 
 		<label for="Marital_Status">Marital Status</label>
 		<select name="Marital_Status" id="Marital_Status">
-			<option value="0">0</option>
-			<option value="1">1</option>
+			{% set m = form_data.get('Marital_Status') if form_data else '0' %}
+			<option value="0" {% if m=='0' %}selected{% endif %}>0</option>
+			<option value="1" {% if m=='1' %}selected{% endif %}>1</option>
 		</select>
 
 		<label for="Product_Category_1">Product Category 1</label>
-		<input type="number" name="Product_Category_1" id="Product_Category_1" min="0" />
+		<input type="number" name="Product_Category_1" id="Product_Category_1" min="0" value="{{ form_data.Product_Category_1 if form_data else '' }}" />
 
 		<label for="Product_Category_2">Product Category 2 (optional)</label>
-		<input type="number" name="Product_Category_2" id="Product_Category_2" min="0" />
+		<input type="number" name="Product_Category_2" id="Product_Category_2" min="0" value="{{ form_data.Product_Category_2 if form_data else '' }}" />
 
 		<label for="Product_Category_3">Product Category 3 (optional)</label>
-		<input type="number" name="Product_Category_3" id="Product_Category_3" min="0" />
+		<input type="number" name="Product_Category_3" id="Product_Category_3" min="0" value="{{ form_data.Product_Category_3 if form_data else '' }}" />
 
 		<div class="submit">
 			<button type="submit">Predict Purchase</button>
