@@ -114,6 +114,12 @@ def predict():
 
         # Model expects 5 features: Gender, Age, Occupation, City_Category, Stay_In_Current_City_Years
         features = np.array([[gender, age, occupation, city, stay]])
+        # Build a DataFrame with the API feature names. Many sklearn Pipelines
+        # (ColumnTransformer) expect column names and will raise if given a
+        # plain ndarray. Passing a DataFrame is backwards compatible with
+        # estimators that accept arrays.
+        api_cols = ['Gender', 'Age', 'Occupation', 'City_Category', 'Stay_In_Current_City_Years']
+        features_df = pd.DataFrame(features, columns=api_cols)
         choice = data.get('model_choice', 'rf')
 
         model_key = {
@@ -131,15 +137,18 @@ def predict():
         # recorded (feature_names_in_). Passing a DataFrame avoids sklearn's
         # "X does not have valid feature names" warning and is safer.
         try:
+            # Prefer passing a DataFrame with API column names. If the model was
+            # trained with different feature names and records them in
+            # feature_names_in_, prefer that mapping instead.
             fnames = getattr(model, 'feature_names_in_', None)
-            if fnames is not None:
+            if fnames is not None and len(fnames) == features.shape[1]:
                 cols = list(fnames[:features.shape[1]])
                 features_df = pd.DataFrame(features, columns=cols)
                 pred_val = model.predict(features_df)[0]
             else:
-                pred_val = model.predict(features)[0]
+                pred_val = model.predict(features_df)[0]
         except Exception:
-            # fallback to direct predict if anything goes wrong
+            # fallback to direct predict on ndarray if DataFrame path fails
             pred_val = model.predict(features)[0]
 
         pred = int(round(pred_val))
@@ -215,12 +224,12 @@ def api_predict():
 
         try:
             fnames = getattr(model, 'feature_names_in_', None)
-            if fnames is not None:
+            if fnames is not None and len(fnames) == features.shape[1]:
                 cols = list(fnames[:features.shape[1]])
                 features_df = pd.DataFrame(features, columns=cols)
                 pred_val = model.predict(features_df)[0]
             else:
-                pred_val = model.predict(features)[0]
+                pred_val = model.predict(features_df)[0]
         except Exception:
             pred_val = model.predict(features)[0]
 
