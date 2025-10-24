@@ -58,8 +58,10 @@ def preload_models(names=("rf_model",)):
         except Exception as e:
             logger.error(f"Could not preload model {n}: {e}")
 
-# call preload during import/startup
-preload_models(("rf_model",))
+# call preload during import/startup only when explicitly enabled.
+# Preloading large pickles at import time can slow startup or OOM on PaaS.
+if os.environ.get('PRELOAD_MODELS', '0') in ('1', 'true', 'True'):
+    preload_models(("rf_model",))
 
 # ------------------- Routes ------------------- #
 
@@ -164,21 +166,37 @@ def api_predict():
     if not data:
         return jsonify({'error': 'Expected JSON body'}), 400
 
+    # Log raw incoming JSON so we can debug why different inputs may map to
+    # the same features (common cause: client uses different key casing).
+    logger.info(f"Received JSON data: {data}")
+
+    # Helper to read keys case-insensitively and accept either 'Gender' or 'gender'
+    def get_key(d, key, default=None):
+        if key in d:
+            return d.get(key)
+        lower = key.lower()
+        if lower in d:
+            return d.get(lower)
+        upper = key.upper()
+        if upper in d:
+            return d.get(upper)
+        return default
+
     try:
         gender_map = {'M': 1, 'F': 0}
         age_map = {'0-17': 0, '18-25': 1, '26-35': 2, '36-45': 3, '46-50': 4, '51-55': 5, '55+': 6}
         city_map = {'A': 0, 'B': 1, 'C': 2}
 
-        gender = gender_map.get(data.get('Gender'), 0)
-        age = age_map.get(data.get('Age'), 2)
-        occupation = int(data.get('Occupation', 0))
-        city = city_map.get(data.get('City_Category'), 0)
+        gender = gender_map.get(get_key(data, 'Gender'), 0)
+        age = age_map.get(get_key(data, 'Age'), 2)
+        occupation = int(get_key(data, 'Occupation', 0) or 0)
+        city = city_map.get(get_key(data, 'City_Category'), 0)
 
-        stay_val = data.get('Stay_In_Current_City_Years', '0')
+        stay_val = get_key(data, 'Stay_In_Current_City_Years', '0')
         stay = int(stay_val.replace('+', '')) if isinstance(stay_val, str) and stay_val.endswith('+') else int(stay_val)
 
         features = np.array([[gender, age, occupation, city, stay]])
-        choice = data.get('model_choice', 'rf')
+        choice = get_key(data, 'model_choice', 'rf') or 'rf'
 
         model_key = {
             'rf': 'rf_model',
@@ -190,6 +208,10 @@ def api_predict():
         }.get(choice, 'rf_model')
 
         model = load_model(model_key)
+
+        # Log computed features to help debugging. If different inputs keep
+        # producing the same features it will be obvious here.
+        logger.info(f"Computed features for prediction: {[gender, age, occupation, city, stay]}")
 
         try:
             fnames = getattr(model, 'feature_names_in_', None)
@@ -203,13 +225,11 @@ def api_predict():
             pred_val = model.predict(features)[0]
 
         pred = int(round(pred_val))
-
+        return jsonify({'prediction': pred})
     except Exception as e:
         logger.exception("API prediction failed")
         session['last_error'] = str(e)
         return jsonify({'error': f'Prediction error: {e}'}), 500
-
-    return jsonify({'prediction': pred})
 
 
 @app.route('/clear')
